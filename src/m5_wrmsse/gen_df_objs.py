@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 import importlib.resources
-import data
 
-from .aggregation import aggregation
+from . import data
+from . import aggregation
 
 
 def _gen_weights(sales, calendar, prices):
@@ -33,15 +33,17 @@ def _gen_weights(sales, calendar, prices):
                    .merge(sales.loc[:,:'state_id'], how='left', on='id')
                   )
     weights = pd.Series([], dtype='float64')
-    for v in agg_levels.values():
+    for v in aggregation.levels.values():
         if v == None:
             w = pd.Series([1])
         else:
             w = revenue_pct.groupby(by=v).sum()['revenue_pct']
         weights = pd.concat([weights,w])
     weights = weights * 1/12
-    weights.to_pickle(
-        importlib.resources.path('data', 'weights.pkl.zip')
+    weights.to_csv(
+        importlib.resources.path(data, 'weights.csv.gz'),
+        index = False,
+        header = ['Weights'],
     )
     
 def _gen_sales_ids(sales):
@@ -52,8 +54,9 @@ def _gen_sales_ids(sales):
     """
     print('Creating sales IDs file...')
     sales_ids = sales.loc[:,:'state_id']
-    sales_ids.to_pickle(
-        importlib.resources.path('data', 'sales_ids.pkl.zip')
+    sales_ids.to_csv(
+        importlib.resources.path(data, 'sales_ids.csv.gz'),
+        index = False
     )
 
     
@@ -63,26 +66,31 @@ def _gen_train_mse(sales):
     set. This will be used in the RMSSE calculation.
     """
     print('Creating train MSE file...')
-    train_agg = _aggregation(sales.iloc[:,:-28])
+    train_agg = aggregation.aggregate(sales.iloc[:,:-28])
     train_mse = [np.mean((np.diff(np.trim_zeros(row))**2)) 
                  for row in train_agg.values]
-    pd.Series(train_mse).to_pickle(
-        importlib.resources.path('data', 'train_mse.pkl.zip')
+    pd.Series(train_mse).to_csv(
+        importlib.resources.path(data, 'train_mse.csv.gz'),
+        index = False
     )
     
 
 def _gen_test_agg(sales):
     print('Creating aggregated test file...')
     test = sales.drop(list(sales)[6:-28], axis=1)
-    test_agg = _aggregation(test)
-    test_agg.to_pickle(
-        importlib.resources.path('data', 'test_agg.pkl.zip')
+    test_agg = aggregation.aggregate(test)
+    test_agg.to_csv(
+        importlib.resources.path(data, 'test_agg.csv.gz'),
+        index = False,
+        header = ['train_mse']
     )
     
 
-def _gen_pkl_objs():
+def gen_df_objs():
     """ 
-    Create and pickle dataframes required to run the wrmsse function. 
+    Create dataframes required to run the wrmsse function and save as
+    csv files. These are intermediate data that will allow the wrmsse
+    to be calculated faster.
     Requires sales_train_evaluation.csv, sell_prices.csv and
     calendar.csv which are available through Kaggle:
     https://www.kaggle.com/competitions/m5-forecasting-accuracy/data
@@ -97,5 +105,3 @@ def _gen_pkl_objs():
         _gen_test_agg(sales)
     except FileNotFoundError as missing:
         print(f'Cannot complete, missing file: {missing.filename}')
-
-        

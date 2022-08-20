@@ -1,12 +1,12 @@
 import pandas as pd
 
-def aggregation(df: pd.DataFrame) -> pd.DataFrame:
+def aggregate(df: pd.DataFrame) -> pd.DataFrame:
     """ 
     Perform the 12 levels of aggregation as described in the M5
     Competitors Guide
     """
     df_agg = pd.DataFrame([])
-    for v in agg_levels.values():
+    for v in levels.values():
         if v == None:
             agg = df.sum(numeric_only=True)
             agg = agg.to_frame().T
@@ -16,7 +16,7 @@ def aggregation(df: pd.DataFrame) -> pd.DataFrame:
     return df_agg
 
 
-agg_levels = {
+levels = {
     'level_1': None,
     'level_2': ['state_id'],
     'level_3': ['store_id'],

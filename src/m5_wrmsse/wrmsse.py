@@ -3,7 +3,7 @@ import pandas as pd
 import importlib.resources
 
 from . import data
-from .aggregation import aggregation
+from . import aggregation
 
 def _rmsse(test, forecast, train_mse):
     """
@@ -26,22 +26,32 @@ def wrmsse(forecast: np.ndarray) -> float:
     else:
         forecast = pd.DataFrame(forecast)
     try:
-        sales_ids = pd.read_pickle(
-            importlib.resources.path(data, 'sales_ids.pkl.zip')
+        sales_ids = pd.read_csv(
+            importlib.resources.path(data, 'sales_ids.csv.gz'),
+            index_col = False,
         )
-        test_agg = pd.read_pickle(
-            importlib.resources.path(data, 'test_agg.pkl.zip')
+        test_agg = pd.read_csv(
+            importlib.resources.path(data, 'test_agg.csv.gz'),
+            index_col = False,
         )                             
-        train_mse = pd.read_pickle(
-            importlib.resources.path(data, 'train_mse.pkl.zip')
-        )                             
-        weights = pd.read_pickle(
-            importlib.resources.path(data, 'weights.pkl.zip')
-        )                             
-    except FileNotFoundError as missing_pkl:
-        print(f'Unable to complete, missing file: {missing_pkl.filename}')
+        train_mse = pd.read_csv(
+            importlib.resources.path(data, 'train_mse.csv.gz'),
+            index_col = False,
+        )
+        train_mse = train_mse.values.flatten()
+        weights = pd.read_csv(
+            importlib.resources.path(data, 'weights.csv.gz'),
+            index_col = False,
+        )
+        weights = weights.values.flatten()
+    except FileNotFoundError as missing_file:
+        print(f'Unable to complete, missing file: {missing_file.filename}')
         return
     forecast = pd.concat((sales_ids, forecast), axis=1)
-    forecast_agg = aggregation(forecast)
-    rmsse = _rmsse(test_agg.values, forecast_agg.values, train_mse)
-    return (weights.values * rmsse).sum()
+    forecast_agg = aggregation.aggregate(forecast)
+    rmsse = _rmsse(
+        test_agg.values,
+        forecast_agg.values,
+        train_mse,
+    )
+    return (weights * rmsse).sum()
