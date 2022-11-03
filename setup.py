@@ -9,15 +9,15 @@ with open('LICENSE') as f:
 
 setup(
     name = 'm5-wrmsse',
-    version = '0.0.1',
+    version = '1.0.0',
     description = 'WRMSSE score for the M5 dataset',
     long_description = readme,
     author = 'Paul Morgan',
     author_email = '',
     url = 'https://github.com/pmrgn/m5-wrmsse',
     install_requires = [
-        'numpy==1.23.2',
-        'pandas==1.4.3',
+        'numpy>=1.23',
+        'pandas>=1.4',
     ],
     license = license,
     packages = find_packages(where='src'),
