@@ -11,7 +11,7 @@ def aggregate(df: pd.DataFrame) -> pd.DataFrame:
             agg = df.sum(numeric_only=True)
             agg = agg.to_frame().T
         else:
-            agg = df.groupby(by=v).sum()
+            agg = df.groupby(by=v).sum(numeric_only=True)
         df_agg = pd.concat([df_agg, agg])
     return df_agg
 
