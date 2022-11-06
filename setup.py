@@ -16,9 +16,10 @@ setup(
     author = 'Paul Morgan',
     author_email = '',
     url = 'https://github.com/pmrgn/m5-wrmsse',
+    python_requires = '>=3.9',
     install_requires = [
-        'numpy>=1.18',
-        'pandas>=1.0',
+        'numpy>=1.20',
+        'pandas>=1.2',
     ],
     license = license,
     packages = find_packages(where='src'),
